@@ -25,7 +25,7 @@
 // With RASPI 1 to 3 we are replacing the original interrupt of ttyAMA0. With RASPI 4 the interrupt is shared between
 // all 5 UARTs and so the interrupt of ttyebus is added to the shared list. Note that interrupt numbers in Raspbian
 // (Debian) are re-ordered by some Linux-internal logic, so we must always see what interrupt is assigned at a specific
-// RASPI / Raspbian version. This can be done by executing "cat /proc/interrupts" while ttyAMA0 is still active.
+// RASPI / Raspbian version. This can be done by executing "cat /proc/interrupts" while ttyAMA0 or ttyS0 is still active.
 //
 //===============================================================================================================
 //
@@ -39,8 +39,8 @@
 // 2020-01-08   V1.7    Added support for RASPI4
 // 2020-07-25	V1.8	Corrected set_fs(KERNEL_DS) for kernel 5.4
 // 2024-05-07	v1.9	Changed ttyebus_raspi_model function for kernel >5.10
-// 2025-12-19	v2.0	include configure sctipt to get model and irq automatically 
-//                      and removed ttyebus_raspi_model function
+// 2025-12-19	v2.0	include configure script to get model and irq automatically 
+//                      and remove ttyebus_raspi_model function
 //
 //===============================================================================================================
 
@@ -110,14 +110,6 @@ static struct miscdevice misc =
             S_IROTH |   // Other read
             S_IWOTH     // Other write
     };
-
-
-//#ifndef IRQ_VAL
-//#define IRQ_VAL 0  // Letzte Rettung, falls das Makro gar nicht ankommt
-//#endif
-//#ifndef MODEL_VAL
-//#define MODEL_VAL 0  // Letzte Rettung, falls das Makro gar nicht ankommt
-//#endif
 
 static unsigned int RaspiModel = MODEL_VAL;
 static unsigned int UartIrq = IRQ_VAL;

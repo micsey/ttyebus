@@ -19,20 +19,30 @@ This driver was created to be used along with the eBus. Therefore, the UART para
 
 This driver will manipulate the PL011 UART hardware and the GPIO pins 14 and 15 directly. There is no check if this will collide with any other software in the system. The user has to take care that the driver has exclusive access to this hardware. Especially at the Raspberry Pi / Raspbian, the device /dev/ttyAMA0 has to be removed completely before using this driver.
 
-Since this driver is provided as a kernel module, it has to be compiled at the target system, using the kernel header files of the actual kernel version. When upgrading the kernel to a higher version, the new kernel header files must also be fetched and the driver must be re-compiled with this matching headers.
+Since this driver is provided as a kernel module, it has to be compiled at the target system, using the kernel header files of the actual kernel version. When upgrading the kernel to a higher version, the new kernel header files must also be fetched and the driver must be re-compiled with this matching headers.  
 
 Target Platform
 ---------------
-This driver was tested and will work on all Raspberry Pi up to version 4, using Raspbian Wheezy, Jessy, Stretch and Buster. Take care for special settings on Raspberry Pi 3 and 4.
-
-Please note !
--------------
-Due to changes in the interrupt handling of Raspbian, the ttyebus does no longer work with (BUSTER) Versions greater than 4.19.97.
-Buster V4.19.97 (February 2020) ist the last version supported. This also means: do not upgrade your running system to a newer version than this one.
+This driver was tested and will work on all Raspberry Pi up to version 4, using Raspbian Wheezy, Jessy, Stretch, Buster and Bookworm. Take care for special settings on Raspberry Pi 3 and 4.
 
 Install
 --------
-* Before using this software, the resources of the PL011 UART normally allocated by the ttyAMA0 device must be freed.
+
+* if ttyebus module is already installed and you want change the model or OS you have to do the following steps:
+    > cd ~/ttyebus
+    > sudo make uninstall
+    > sudo reboot
+   enable serial in raspi-config
+    > sudo reboot
+    > cd ~/ttyebus
+    > configure
+   disable serial in raspi-config
+    > sudo reboot
+    > cd ~/ttyebus
+    > make
+    > sudo make install
+
+* Before using this software, the resources of the PL011 UART normally allocated by the ttyAMA0 or ttyS0 device must be freed.
  - To see what hardware you have, type: 
 
     > cat /sys/firmware/devicetree/base/model
@@ -49,7 +59,7 @@ Install
 
  - On ***all*** hardware, call "sudo raspi-config" - Interfacing Options - Serial - and disable the login shell and the serial port hardware. Press finish and the system should reboot.
 
-  - You may verify this by typing "ls -l /dev". The "ttyAMA0" should no longer be listed.
+  - You may verify this by typing "ls -l /dev". The "ttyAMA0" or "ttyS0" should no longer be listed.
 
   - On ***Raspberry Pi 4*** verify that file /boot/config.txt does ***NOT*** contain a line "enable_uart=0". If the line exists remove or comment (#) this line.
 
@@ -69,10 +79,11 @@ Install
 * Download the latest ttyebus release package from the repository to your working directory.
   
     > cd ~  
-    > git clone https://github.com/ebus/ttyebus.git
+    > git clone https://github.com/micsey/ebus/ttyebus.git
 
 * Build the ttyebus module
-    > cd ~/ttyebus  
+    > cd ~/ttyebus 
+    > ./configure 
     > make
     
     On success, you should find a file "ttyebus.ko" in your working directory.
@@ -93,12 +104,12 @@ Uninstall
 ---------
 * If you want to uninstall the module you can do this with:
 
-	> cd ~/ttyebus  
+    > cd ~/ttyebus  
     > sudo make uninstall
 
 * If uninstall fails because the module ttyebus is in use, you may consider stopping the user of the module first, namely the ebusd daemon, see the [ebusd Wiki](https://github.com/john30/ebusd/wiki/2.-Run):
   
-    > sudo service ebusd stop
+    > sudo service ebusd stop    
 
 Configuration
 -------------
@@ -122,5 +133,4 @@ Contact
 -------
 For bugs and missing features use github issue system.
 
-The author can be contacted at galileo53@gmx.at .
-
+The author can be contacted at galileo53@gmx.at or elumi@lange-sey.de for this fork.

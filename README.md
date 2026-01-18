@@ -79,7 +79,7 @@ Install
 * Download the latest ttyebus release package from the repository to your working directory.
   
     > cd ~  
-    > git clone https://github.com/micsey/ebus/ttyebus.git
+    > git clone https://github.com/micsey/ttyebus.git
 
 * Build the ttyebus module
     > cd ~/ttyebus  

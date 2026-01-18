@@ -5,6 +5,9 @@
 # 
 #
 ###################################################################
+-include $(src)/config.mk
+ccflags-y += -DMODEL_VAL=$(RPI_MODEL) -DIRQ_VAL=$(TTY_IRQ)
+
 TARGET_MODULE:=ttyebus
 TARGET_DIR:=/lib/modules/$(shell uname -r)/kernel/drivers/tty/serial
 
@@ -45,5 +48,7 @@ uninstall:
 	modprobe -r $(TARGET_MODULE)
 	rm $(TARGET_DIR)/$(TARGET_MODULE).ko
 	sed -i "s/$(TARGET_MODULE)//g" /etc/modules
+	rm -f config.mk .lock
 
 endif
+

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# searching for modelnumber
+RPI_MODEL=$(cat /proc/device-tree/model | tr -d '\0'| sed 's/.*Raspberry Pi \(.\).*/\1/')
+if [ -z "$RPI_MODEL" ]; then
+    echo "Unknown model!!"
+    exit
+fi
+
+# searching for ttyAMA or ttyS IRQ, if kernel driver already installed
+RPI_IRQ=$(grep -E 'ttyAMA|ttyS0' /proc/interrupts | awk '{print $1}' | tr -d ':')
+if [ -z "$RPI_IRQ" ]; then
+    if [ -f ".lock" ]; then
+       echo "Ready to build kernel driver with make"
+       rm .lock
+       exit
+    else
+       echo "Searching for ttyebus IRQ, because ttyAMA|ttyS is already disabled"
+       RPI_IRQ=$(grep 'ttyebus' /proc/interrupts | awk '{print $1}' | tr -d ':')
+       if [ -z "$RPI_IRQ" ]; then
+           echo "No IRQ found, enable again ttyAMA|ttyS, reboot system and rerun configure!!!"
+           exit
+       fi
+    fi
+else
+   touch .lock
+   echo "Please disable now ttyAMA|ttyS, reboot system and rerun configure!!!"
+   echo "See README.md for disabling serial interface"
+fi
+
+
+echo "Generate configuration ..."
+echo "Found model: $RPI_MODEL"
+echo "Found IRQ  : $RPI_IRQ"
+
+# create config.mk
+cat <<EOF > config.mk
+RPI_MODEL = $RPI_MODEL
+TTY_IRQ = $RPI_IRQ
+EOF
+
+echo "file 'config.mk' successfull created."
+

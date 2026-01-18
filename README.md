@@ -29,17 +29,17 @@ Install
 --------
 
 * if ttyebus module is already installed and you want change the model or OS you have to do the following steps:
-    > cd ~/ttyebus
-    > sudo make uninstall
-    > sudo reboot
-   enable serial in raspi-config
-    > sudo reboot
-    > cd ~/ttyebus
-    > configure
-   disable serial in raspi-config
-    > sudo reboot
-    > cd ~/ttyebus
-    > make
+    > cd ~/ttyebus      
+    > sudo make uninstall  
+    > sudo reboot  
+    enable serial in raspi-config  
+    > sudo reboot  
+    > cd ~/ttyebus  
+    > configure  
+    disable serial in raspi-config  
+    > sudo reboot  
+    > cd ~/ttyebus  
+    > make  
     > sudo make install
 
 * Before using this software, the resources of the PL011 UART normally allocated by the ttyAMA0 or ttyS0 device must be freed.
@@ -82,8 +82,8 @@ Install
     > git clone https://github.com/micsey/ebus/ttyebus.git
 
 * Build the ttyebus module
-    > cd ~/ttyebus 
-    > ./configure 
+    > cd ~/ttyebus  
+    > ./configure  
     > make
     
     On success, you should find a file "ttyebus.ko" in your working directory.

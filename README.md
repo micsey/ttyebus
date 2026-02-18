@@ -29,17 +29,17 @@ Install
 --------
 
 * if ttyebus module is already installed and you want change the model you have to do the following steps:
-    > cd ~/ttyebus
-    > sudo make clean
-    > sudo reboot
-   enable serial in raspi-config
-    > sudo reboot
-    > cd ~/ttyebus
-    > ./configure
-   disable serial in raspi-config
-    > sudo reboot
-    > cd ~/ttyebus
-    > make
+    > cd ~/ttyebus  
+    > sudo make clean  
+    > sudo reboot  
+   enable serial in raspi-config  
+    > sudo reboot  
+    > cd ~/ttyebus  
+    > ./configure  
+   disable serial in raspi-config  
+    > sudo reboot  
+    > cd ~/ttyebus  
+    > make  
     > sudo make install
 
 * Before using this software, the resources of the PL011 UART normally allocated by the ttyAMA0 device must be freed.
@@ -82,8 +82,8 @@ Install
     > git clone https://github.com/micsey/ttyebus.git
 
 * Build the ttyebus module
-    > cd ~/ttyebus 
-    > ./configure 
+    > cd ~/ttyebus  
+    > ./configure  
     > make
     
     On success, you should find a file "ttyebus.ko" in your working directory.
@@ -110,6 +110,8 @@ Uninstall
 * If uninstall fails because the module ttyebus is in use, you may consider stopping the user of the module first, namely the ebusd daemon, see the [ebusd Wiki](https://github.com/john30/ebusd/wiki/2.-Run):
   
     > sudo service ebusd stop
+
+* If it still fails, you must prevent the driver from loading at system startup by deleting the ttyebus entry from /etc/modules. You need a reboot after this change.
 
 Testing the driver
 ------------------

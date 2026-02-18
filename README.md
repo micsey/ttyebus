@@ -3,6 +3,8 @@ ttyebus
 
 ttyebus is a linux kernel module that will provide a serial device /dev/ttyebus with almost no latency upon receiving characters. It is dedicated to the PL011 UART of the Raspberry Pi.
 
+Attention: This version has only been tested on a Raspi 4 with Bookworm so far !!!
+
 Theory of Operation
 -------------------
 The PrimeCell UART PL011 found in the Broadcom BCM2835 on the Rasperry Pi is a variation of the popular 16C650 UART. This kind of UART features a 32 byte depth FIFO for receive and transmit. One can select the FIFO trigger level that will specify the number of received bytes in the FIFO before the UART will issue an interrupt to the system. The values for this trigger level are 4, 8, 16, 24 and 28 characters. Unfortunately, it cannot be set to 1 character.
@@ -23,7 +25,7 @@ Since this driver is provided as a kernel module, it has to be compiled at the t
 
 Target Platform
 ---------------
-This driver was tested and will work on all Raspberry Pi up to version 4, using Raspbian Wheezy, Jessy, Stretch, Buster and bookworm. Take care for special settings on Raspberry Pi 3 and 4.
+This driver was tested and will work on all Raspberry Pi up to version 4, using Raspbian Wheezy, Jessy, Stretch, Buster and Bookworm. Take care for special settings on Raspberry Pi 3 and 4.
 
 Install
 --------
@@ -116,7 +118,7 @@ Uninstall
 Testing the driver
 ------------------
 With the python-script simulate_ebus.py you can test the driver without physical connection to the ebus.
-You only need a power supply with 17 - 24 V DC and a 220 - 470 Ohm resistor , which you connect to the ebus. 
+You only need a power supply with 17 - 24 V DC and a 220 - 470 Ohm resistor for current limiting, which you connect to the ebus. 
 
 Configuration
 -------------

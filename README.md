@@ -23,26 +23,26 @@ Since this driver is provided as a kernel module, it has to be compiled at the t
 
 Target Platform
 ---------------
-This driver was tested and will work on all Raspberry Pi up to version 4, using Raspbian Wheezy, Jessy, Stretch, Buster and Bookworm. Take care for special settings on Raspberry Pi 3 and 4.
+This driver was tested and will work on all Raspberry Pi up to version 4, using Raspbian Wheezy, Jessy, Stretch, Buster and bookworm. Take care for special settings on Raspberry Pi 3 and 4.
 
 Install
 --------
 
-* if ttyebus module is already installed and you want change the model or OS you have to do the following steps:
-    > cd ~/ttyebus      
-    > sudo make uninstall  
-    > sudo reboot  
-    enable serial in raspi-config  
-    > sudo reboot  
-    > cd ~/ttyebus  
-    > configure  
-    disable serial in raspi-config  
-    > sudo reboot  
-    > cd ~/ttyebus  
-    > make  
+* if ttyebus module is already installed and you want change the model you have to do the following steps:
+    > cd ~/ttyebus
+    > sudo make clean
+    > sudo reboot
+   enable serial in raspi-config
+    > sudo reboot
+    > cd ~/ttyebus
+    > ./configure
+   disable serial in raspi-config
+    > sudo reboot
+    > cd ~/ttyebus
+    > make
     > sudo make install
 
-* Before using this software, the resources of the PL011 UART normally allocated by the ttyAMA0 or ttyS0 device must be freed.
+* Before using this software, the resources of the PL011 UART normally allocated by the ttyAMA0 device must be freed.
  - To see what hardware you have, type: 
 
     > cat /sys/firmware/devicetree/base/model
@@ -59,7 +59,7 @@ Install
 
  - On ***all*** hardware, call "sudo raspi-config" - Interfacing Options - Serial - and disable the login shell and the serial port hardware. Press finish and the system should reboot.
 
-  - You may verify this by typing "ls -l /dev". The "ttyAMA0" or "ttyS0" should no longer be listed.
+  - You may verify this by typing "ls -l /dev". The "ttyAMA0" should no longer be listed.
 
   - On ***Raspberry Pi 4*** verify that file /boot/config.txt does ***NOT*** contain a line "enable_uart=0". If the line exists remove or comment (#) this line.
 
@@ -82,8 +82,8 @@ Install
     > git clone https://github.com/micsey/ttyebus.git
 
 * Build the ttyebus module
-    > cd ~/ttyebus  
-    > ./configure  
+    > cd ~/ttyebus 
+    > ./configure 
     > make
     
     On success, you should find a file "ttyebus.ko" in your working directory.
@@ -104,12 +104,17 @@ Uninstall
 ---------
 * If you want to uninstall the module you can do this with:
 
-    > cd ~/ttyebus  
-    > sudo make uninstall
+	> cd ~/ttyebus  
+    > sudo make clean
 
 * If uninstall fails because the module ttyebus is in use, you may consider stopping the user of the module first, namely the ebusd daemon, see the [ebusd Wiki](https://github.com/john30/ebusd/wiki/2.-Run):
   
-    > sudo service ebusd stop    
+    > sudo service ebusd stop
+
+Testing the driver
+------------------
+With the python-script simulate_ebus.py you can test the driver without physical connection to the ebus.
+You only need a power supply with 17 - 24 V DC and a 220 - 470 Ohm resistor , which you connect to the ebus. 
 
 Configuration
 -------------
@@ -133,4 +138,5 @@ Contact
 -------
 For bugs and missing features use github issue system.
 
-The author can be contacted at galileo53@gmx.at or elumi@lange-sey.de for this fork.
+The author can be contacted at galileo53@gmx.at .
+

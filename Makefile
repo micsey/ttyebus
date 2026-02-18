@@ -1,54 +1,45 @@
-#!/bin/bash
-###################################################################
-#
-# make file to build and install/uninstall the ttyebus module
-# 
-#
-###################################################################
--include $(src)/config.mk
-ccflags-y += -DMODEL_VAL=$(RPI_MODEL) -DIRQ_VAL=$(TTY_IRQ)
+# Makefile für ttyebus Kernel-Modul (Raspberry Pi 3/4 - Bookworm)
 
-TARGET_MODULE:=ttyebus
-TARGET_DIR:=/lib/modules/$(shell uname -r)/kernel/drivers/tty/serial
+# Name des Moduls
+obj-m += ttyebus.o
 
-# If we running by kernel building system
-ifneq ($(KERNELRELEASE),)
-	$(TARGET_MODULE)-objs := $(TARGET_MODULE)m.o
-	obj-m := $(TARGET_MODULE).o
+# Pfade
+TARGET_MODULE := ttyebus
+BUILDSYSTEM_DIR := /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
+CONFIG_FILE := config.h
 
-# If we are running without kernel build system
-else
-	BUILDSYSTEM_DIR?=/lib/modules/$(shell uname -r)/build
-	PWD:=$(shell pwd)
+# Standard-Target: Kompilieren
+all: $(CONFIG_FILE)
+	$(MAKE) -C $(BUILDSYSTEM_DIR) M=$(PWD) modules KBUILD_MODPOST_WARN=1 KBUILD_MODPOST_NO_MISSING_OK=1
 
+# Prüft, ob das configure-Skript ausgeführt wurde
+$(CONFIG_FILE):
+	@if [ ! -f $(CONFIG_FILE) ]; then \
+		echo "Fehler: $(CONFIG_FILE) fehlt!"; \
+		echo "Bitte führen Sie zuerst './configure' aus."; \
+		exit 1; \
+	fi
 
-all : 
-# run kernel build system to make module
-	$(MAKE) -C $(BUILDSYSTEM_DIR) M=$(PWD) modules
+# Hilfs-Target: Führt das configure-Skript automatisch aus
+config:
+	@chmod +x configure
+	@./configure
 
-clean:
-# run kernel build system to cleanup in current directory
-	$(MAKE) -C $(BUILDSYSTEM_DIR) M=$(PWD) clean
-
-load:
-	modprobe $(TARGET_DIR)/$(TARGET_MODULE)
-
-unload:
-	modprobe -r $(TARGET_MODULE)
-	
+# Installieren des Moduls
+# Missing warning kann ignoriert werden!!!
 install:
-	cp $(TARGET_MODULE).ko $(TARGET_DIR)/$(TARGET_MODULE).ko
+	$(MAKE) -C $(BUILDSYSTEM_DIR) M=$(PWD) modules_install
 	depmod -a
-	cd $(TARGET_DIR)/
 	modprobe $(TARGET_MODULE)
 	sed -i "s/$(TARGET_MODULE)//g" /etc/modules
 	echo "$(TARGET_MODULE)" >> /etc/modules
-	
-uninstall:
-	modprobe -r $(TARGET_MODULE)
-	rm $(TARGET_DIR)/$(TARGET_MODULE).ko
+
+# Bereinigen
+clean:
+	$(MAKE) -C $(BUILDSYSTEM_DIR) M=$(PWD) clean
 	sed -i "s/$(TARGET_MODULE)//g" /etc/modules
-	rm -f config.mk .lock
+	rm -f $(CONFIG_FILE)
+	modprobe -r $(TARGET_MODULE)
 
-endif
-
+.PHONY: all config install clean

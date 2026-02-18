@@ -1,43 +1,79 @@
 #!/bin/bash
 
-# searching for modelnumber
-RPI_MODEL=$(cat /proc/device-tree/model | tr -d '\0'| sed 's/.*Raspberry Pi \(.\).*/\1/')
-if [ -z "$RPI_MODEL" ]; then
-    echo "Unknown model!!"
-    exit
-fi
+# ==============================================================================
+# ttyebus Configure Script v2.0
+# Ermittelt Modell und IRQ für RPi 3/4 unter Bookworm (Kernel 6.x)
+# ==============================================================================
 
-# searching for ttyAMA or ttyS IRQ, if kernel driver already installed
-RPI_IRQ=$(grep -E 'ttyAMA|ttyS0' /proc/interrupts | awk '{print $1}' | tr -d ':')
-if [ -z "$RPI_IRQ" ]; then
-    if [ -f ".lock" ]; then
-       echo "Ready to build kernel driver with make"
-       rm .lock
-       exit
-    else
-       echo "Searching for ttyebus IRQ, because ttyAMA|ttyS is already disabled"
-       RPI_IRQ=$(grep 'ttyebus' /proc/interrupts | awk '{print $1}' | tr -d ':')
-       if [ -z "$RPI_IRQ" ]; then
-           echo "No IRQ found, enable again ttyAMA|ttyS, reboot system and rerun configure!!!"
-           exit
-       fi
-    fi
+echo "Prüfe Raspberry Pi Hardware..."
+
+# 1. Bestimmung des Modells über den Device-Tree
+# ------------------------------------------------------------------------------
+MODEL_STR=$(tr -d '\0' < /proc/device-tree/model)
+RASPI_MODEL=0
+
+if [[ "$MODEL_STR" == *"Raspberry Pi 4"* ]]; then
+    RASPI_MODEL=4
+    echo "Gefunden: Raspberry Pi 4"
+elif [[ "$MODEL_STR" == *"Raspberry Pi 3"* ]]; then
+    RASPI_MODEL=3
+    echo "Gefunden: Raspberry Pi 3"
+elif [[ "$MODEL_STR" == *"Raspberry Pi 2"* ]]; then
+    RASPI_MODEL=2
+    echo "Gefunden: Raspberry Pi 2"
 else
-   touch .lock
-   echo "Please disable now ttyAMA|ttyS, reboot system and rerun configure!!!"
-   echo "See README.md for disabling serial interface"
+    echo "WARNUNG: Unbekanntes Modell ($MODEL_STR). Setze Standard auf RPi 3/4 Kompatibilität."
+    RASPI_MODEL=3
 fi
 
+# 2. Bestimmung des Interrupts (IRQ) für ttyAMA0
+# ------------------------------------------------------------------------------
+# Unter Bookworm/Kernel 6.x nutzen wir /proc/interrupts, um den aktiven IRQ zu finden.
+# Wir suchen nach dem Handler für 'uart-pl011' oder 'ttyAMA0'.
+UART_IRQ=$(grep -m 1 "uart-pl011" /proc/interrupts | awk '{print $1}' | tr -d ':')
 
-echo "Generate configuration ..."
-echo "Found model: $RPI_MODEL"
-echo "Found IRQ  : $RPI_IRQ"
+# Falls über 'uart-pl011' nichts gefunden wurde (z.B. Treiber nicht geladen),
+# versuchen wir es über den Device Tree direkt.
+if [ -z "$UART_IRQ" ]; then
+    UART_IRQ=$(grep -m 1 "ttyAMA0" /proc/interrupts | awk '{print $1}' | tr -d ':')
+fi
 
-# create config.mk
-cat <<EOF > config.mk
-RPI_MODEL = $RPI_MODEL
-TTY_IRQ = $RPI_IRQ
+# Falls beides schief geht, hilft dmesg
+if [ -z "$UART_IRQ" ]; then
+    UART_IRQ=$(dmesg | grep ttyAMA0 | grep -oP 'irq\s*=\s*\K\d+')
+fi
+
+# Letzter Versuch: Auslesen der Interrupt-Eigenschaft aus dem device tree
+if [ -z "$UART_IRQ" ]; then
+    # Pfad zum UART0 (ttyAMA0) im Device Tree
+    DT_PATH="/proc/device-tree/soc/serial@7e201000/interrupts"
+    if [ -f "$DT_PATH" ]; then
+        # Extrahiere das erste Byte (Interrupt-Nummer)
+        UART_IRQ=$(hexdump -n 4 -e '/4 "%u"' $DT_PATH)
+    fi
+fi
+
+if [ -z "$UART_IRQ" ]; then
+    echo "FEHLER: Konnte IRQ für ttyAMA0 nicht ermitteln!"
+    exit 1
+fi
+
+echo "Gefundener IRQ: $UART_IRQ"
+
+# 3. Erstellung der Compiler-Flags
+# ------------------------------------------------
+# Wir schreiben die Werte in eine Datei 'config.h',
+# die vom C-Code eingebunden wird.
+
+cat << EOF > config.h
+/* Automatisch generiert durch configure am $(date) */
+#ifndef MODEL_VAL
+#define MODEL_VAL $RASPI_MODEL
+#endif
+
+#ifndef IRQ_VAL
+#define IRQ_VAL $UART_IRQ
+#endif
 EOF
 
-echo "file 'config.mk' successfull created."
-
+echo "Konfiguration abgeschlossen. 'config.h' wurde erstellt."

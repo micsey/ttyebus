@@ -2,6 +2,7 @@
 
 # Name des Moduls
 obj-m += ttyebus.o
+ccflags-y += -Wno-declaration-after-statement
 
 # Pfade
 TARGET_MODULE := ttyebus
@@ -42,4 +43,9 @@ clean:
 	rm -f $(CONFIG_FILE)
 	modprobe -r $(TARGET_MODULE)
 
-.PHONY: all config install clean
+# build-Verzeichnis bereinigen
+distclean:
+        rm -f $(TARGET_MODULE).o* $(TARGET_MODULE).mod* $(TARGET_MODULE).ko*
+        rm -f $(CONFIG_FILE) .$(TARGET_MODULE)*
+
+.PHONY: all config install clean distclean

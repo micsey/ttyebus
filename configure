@@ -43,14 +43,9 @@ if [ -z "$UART_IRQ" ]; then
     UART_IRQ=$(dmesg | grep ttyAMA0 | grep -oP 'irq\s*=\s*\K\d+')
 fi
 
-# Letzter Versuch: Auslesen der Interrupt-Eigenschaft aus dem device tree
+# Letzter Versuch, wenn ttyebus schon aktiv ist
 if [ -z "$UART_IRQ" ]; then
-    # Pfad zum UART0 (ttyAMA0) im Device Tree
-    DT_PATH="/proc/device-tree/soc/serial@7e201000/interrupts"
-    if [ -f "$DT_PATH" ]; then
-        # Extrahiere das erste Byte (Interrupt-Nummer)
-        UART_IRQ=$(hexdump -n 4 -e '/4 "%u"' $DT_PATH)
-    fi
+    UART_IRQ=$(grep -m 1 "ttyebus" /proc/interrupts | awk '{print $1}' | tr -d ':')
 fi
 
 if [ -z "$UART_IRQ" ]; then

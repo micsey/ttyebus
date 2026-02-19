@@ -3,7 +3,7 @@ ttyebus
 
 ttyebus is a linux kernel module that will provide a serial device /dev/ttyebus with almost no latency upon receiving characters. It is dedicated to the PL011 UART of the Raspberry Pi.
 
-Attention: This version has only been tested on a Raspi 4 with Bookworm so far !!!
+Attention: This version has only been tested on a Raspi 3/4 with Buster and Bookworm so far !!!
 
 Theory of Operation
 -------------------
